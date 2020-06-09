@@ -3,6 +3,7 @@ import pygame
 import random
 from pygame.math import Vector2
 
+pygame.init()
 screenSize = 500
 screen = pygame.display.set_mode((500, 500))
 
@@ -69,8 +70,20 @@ class Player(pygame.sprite.Sprite):
 
         #Pucanje
         if keys[pygame.K_SPACE]:
-            if len(self.groups()[0]) < 5:
+            if len(self.groups()[0]) < 3:
                 self.groups()[0].add(Projectile(self.rect.center, self.direction.normalize()))
+
+    def draw_heart(self,screen):
+        self.heartImg = pygame.image.load('heart.png')
+        if self.helth == 2:
+            screen.blit(self.heartImg, (10,10))
+            screen.blit(self.heartImg, (30,10))
+            screen.blit(self.heartImg, (50,10))
+        elif self.helth == 1:
+            screen.blit(self.heartImg, (10,10))
+            screen.blit(self.heartImg, (30,10))
+        elif self.helth == 0:
+            screen.blit(self.heartImg, (10,10))
 
 
 class Asteroid(pygame.sprite.Sprite):
@@ -107,9 +120,11 @@ class Asteroid(pygame.sprite.Sprite):
     def draw(self,screen):
         screen.blit(self.image, self.rect)
 
+
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, pos, direction):
-        super().__init__()
+        pygame.sprite.Sprite.__init__(self)
+        #super().__init__()
         self.image = pygame.Surface((8, 8))
         self.image.fill((0, 0, 0))
         self.image.set_colorkey((0, 0, 0))
@@ -120,23 +135,23 @@ class Projectile(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=pos)
         self.direction = direction
         self.pos = pygame.Vector2(self.rect.center)
-        self.speed = 10 
+        self.speed = 10
+        self.lifetime = 0.0 
 
     def update(self, events,dt):
         self.pos -= self.direction * self.speed# vamo bilo dt mogli smo ga skroz izbacit vidit poslje
         self.rect.center = self.pos
+        self.lifetime += 1
+        if self.lifetime > 70:
+            self.kill()
         if not pygame.display.get_surface().get_rect().contains(self.rect):
             self.kill()
+            
+#Funkcije
 
-    def draw(self,screen):
-         pygame.draw.circle(self.image, (255,0,0), (4, 4), 4)
-
-#main klasa
+#main 
 def main():
-    pygame.init()
-    #------------------------------
-
-    #------------------------------
+    #pygame.init()
     sprites = pygame.sprite.Group(Player(200, 410))
     player = Player(200, 410)
     playersprite = pygame.sprite.RenderPlain((player))
@@ -146,15 +161,20 @@ def main():
         asteroids.add(Asteroid(200 + x*30, 50))
     #------------------------
     clock = pygame.time.Clock()
+    score = 0
+    font = pygame.font.SysFont('comicsans', 30, True, True)
     dt = 0
     timer = 0
     done = False
     def redraw_window():
         screen.fill((255,255,255))
+        text = font.render('Score: ' + str(score), 1, (0,0,0))
+        player.draw_heart(screen)
+        screen.blit(text, (380,10))
         playersprite.draw(screen)
         asteroids.draw(screen)
         pygame.display.update()
-        
+
 
     while not done:
         events = pygame.event.get()
@@ -162,26 +182,71 @@ def main():
         dt = clock.tick(60)
         for event in events:
             if event.type == pygame.QUIT:
-                done = True
+                #done = True
+                quit()
+
         #Asteroid --------------------   
-        if timer % 100 == 0:
+        if timer % 20 == 0:
             asteroids.add(Asteroid(200 + 30,50))
         
-        #bullet_hit = pygame.sprite.spritecollide(sprites, asteroids, True)
         hit = pygame.sprite.spritecollide(player, asteroids, True)
         if hit:
             player.helth -= 1
             print('udaren')
             if player.helth < 0:
+                end_menu(score)
                 print('mrtav')
         #Asteroid
+
+        #Collision za metak ----------------------------
+        bullets = player.groups()[0]
+
+        hitBullet = pygame.sprite.groupcollide(asteroids, bullets, True,True)
+        if hitBullet:
+            score += 10
+        #---------------------------------
 
         #sprites.update(dt)
         playersprite.update(events,dt)
         asteroids.update()
         redraw_window()
-       # pygame.display.update()
 
-if __name__ == '__main__':
-    main()
+#Menu funkcije
+def main_menu():
+    title_font = pygame.font.SysFont('comicsans', 50)
+    run = True
+    while run:
+        screen.fill((255,255,255))
+        title_label = title_font.render("Press the mouse to begin...", 1, (0,0,0))
+        screen.blit(title_label, (screenSize/2 -title_label.get_width()/2, 250))
+
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                main()
+    
     pygame.quit()
+
+def end_menu(score):
+    score_font = pygame.font.SysFont('comicsans', 50)
+    endgame_font = pygame.font.SysFont('comicsans', 40)
+    run = True
+    while run:
+        screen.fill((255,255,255))
+        score_label = score_font.render("Score: " + str(score), 1, (0,0,0))
+        endgame_label = endgame_font.render("You died press mouse to repeat...", 1, (0,0,0))
+        screen.blit(score_label, (screenSize/2 -score_label.get_width()/2, 100))
+        screen.blit(endgame_label, (screenSize/2 -endgame_label.get_width()/2, 250))
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                main()
+    
+    pygame.quit()
+
+
+main_menu()
