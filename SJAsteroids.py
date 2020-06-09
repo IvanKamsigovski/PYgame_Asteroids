@@ -30,7 +30,7 @@ class Player(pygame.sprite.Sprite):
         self.angle = 0
         self.helth = 2
     
-    def update(self,events,dt):
+    def update(self,events):
         if self.angle_speed != 0:
             #Rotacija vektora smjera pa slike
             self.direction.rotate_ip(self.angle_speed)
@@ -68,7 +68,7 @@ class Player(pygame.sprite.Sprite):
         elif self.position.y < 0:
             self.position.y = screenSize
 
-        #Pucanje
+        #Shooting
         if keys[pygame.K_SPACE]:
             if len(self.groups()[0]) < 3:
                 self.groups()[0].add(Projectile(self.rect.center, self.direction.normalize()))
@@ -93,7 +93,7 @@ class Asteroid(pygame.sprite.Sprite):
         self.asteroidImg = pygame.image.load('meteorite.png')
         self.rect = self.asteroidImg.get_rect(center=pos)
         self.angle = random.randint(0,360)
-        self.speed = 3 #mozda koristit random vidit cemo
+        self.speed = 3 
         self.direction = math.radians(random.randint(0,360))
 
     def update(self):
@@ -124,22 +124,19 @@ class Asteroid(pygame.sprite.Sprite):
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, pos, direction):
         pygame.sprite.Sprite.__init__(self)
-        #super().__init__()
         self.image = pygame.Surface((8, 8))
         self.image.fill((0, 0, 0))
         self.image.set_colorkey((0, 0, 0))
         pygame.draw.circle(self.image, (255,0,0), (4, 4), 4)
         self.pos = pos
-        #self.image = pygame.image.load('circle.png')
-        #screen.blit(self.image, pos)
         self.rect = self.image.get_rect(center=pos)
         self.direction = direction
         self.pos = pygame.Vector2(self.rect.center)
         self.speed = 10
         self.lifetime = 0.0 
 
-    def update(self, events,dt):
-        self.pos -= self.direction * self.speed# vamo bilo dt mogli smo ga skroz izbacit vidit poslje
+    def update(self, events):
+        self.pos -= self.direction * self.speed
         self.rect.center = self.pos
         self.lifetime += 1
         if self.lifetime > 70:
@@ -151,7 +148,6 @@ class Projectile(pygame.sprite.Sprite):
 
 #main 
 def main():
-    #pygame.init()
     sprites = pygame.sprite.Group(Player(200, 410))
     player = Player(200, 410)
     playersprite = pygame.sprite.RenderPlain((player))
@@ -206,8 +202,7 @@ def main():
             score += 10
         #---------------------------------
 
-        #sprites.update(dt)
-        playersprite.update(events,dt)
+        playersprite.update(events)
         asteroids.update()
         redraw_window()
 
