@@ -4,8 +4,9 @@ import random
 from pygame.math import Vector2
 
 pygame.init()
-screenSize = 500
-screen = pygame.display.set_mode((500, 500))
+screenwidth= 800
+screenheight = 600
+screen = pygame.display.set_mode((800, 600))
 
 def calculate_new_xy( old_xy, speed, direction):
         new_x = old_xy[0] + (speed*math.cos(direction))
@@ -59,14 +60,14 @@ class Player(pygame.sprite.Sprite):
                     self.angle_speed = 0
         
         #Border
-        if self.position.x  > screenSize: 
+        if self.position.x  > screenwidth: 
             self.position.x = -50
         elif self.position.x < -50:
-            self.position.x = screenSize
-        elif self.position.y > screenSize:
+            self.position.x = screenwidth
+        elif self.position.y > screenheight:
             self.position.y = 0
         elif self.position.y < 0:
-            self.position.y = screenSize
+            self.position.y = screenheight
 
         #Shooting
         if keys[pygame.K_SPACE]:
@@ -108,14 +109,14 @@ class Asteroid(pygame.sprite.Sprite):
         self.rect.center = calculate_new_xy(self.rect.center, self.speed, self.direction)
         
         #Border
-        if self.rect.x > screenSize: 
+        if self.rect.x > screenwidth: 
             self.rect.x = -50
         elif self.rect.x < -50:
-            self.rect.x = screenSize
-        elif self.rect.y > screenSize:
+            self.rect.x = screenwidth
+        elif self.rect.y > screenheight:
             self.rect.y = -50
         elif self.rect.y < -50:
-            self.rect.y = screenSize
+            self.rect.y = screenheight
 
     def draw(self,screen):
         screen.blit(self.image, self.rect)
@@ -126,8 +127,8 @@ class Projectile(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((8, 8))
         self.image.fill((0, 0, 0))
-        self.image.set_colorkey((0, 0, 0))
-        pygame.draw.circle(self.image, (255,0,0), (4, 4), 4)
+        self.image.set_colorkey((255, 255, 255))
+        pygame.draw.circle(self.image, (0,0,0), (4, 4), 6)
         self.pos = pos
         self.rect = self.image.get_rect(center=pos)
         self.direction = direction
@@ -148,13 +149,13 @@ class Projectile(pygame.sprite.Sprite):
 
 #main 
 def main():
-    sprites = pygame.sprite.Group(Player(200, 410))
-    player = Player(200, 410)
+    sprites = pygame.sprite.Group(Player(400, 410))
+    player = Player(400, 410)
     playersprite = pygame.sprite.RenderPlain((player))
     #------------------------
     asteroids = pygame.sprite.Group()
     for x in range(5):
-        asteroids.add(Asteroid(200 + x*30, 50))
+        asteroids.add(Asteroid(400 + x*30, 50))
     #------------------------
     clock = pygame.time.Clock()
     score = 0
@@ -213,7 +214,7 @@ def main_menu():
     while run:
         screen.fill((255,255,255))
         title_label = title_font.render("Press the mouse to begin...", 1, (0,0,0))
-        screen.blit(title_label, (screenSize/2 -title_label.get_width()/2, 250))
+        screen.blit(title_label, (screenwidth/2 -title_label.get_width()/2, 250))
 
         pygame.display.update()
         for event in pygame.event.get():
@@ -232,8 +233,8 @@ def end_menu(score):
         screen.fill((255,255,255))
         score_label = score_font.render("Score: " + str(score), 1, (0,0,0))
         endgame_label = endgame_font.render("You died press mouse to repeat...", 1, (0,0,0))
-        screen.blit(score_label, (screenSize/2 -score_label.get_width()/2, 100))
-        screen.blit(endgame_label, (screenSize/2 -endgame_label.get_width()/2, 250))
+        screen.blit(score_label, (screenwidth/2 -score_label.get_width()/2, 100))
+        screen.blit(endgame_label, (screenwidth/2 -endgame_label.get_width()/2, 250))
         pygame.display.update()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
